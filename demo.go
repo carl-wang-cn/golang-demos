@@ -9,11 +9,12 @@ import (
 
 func main() {
 	// testValues()
-	testVar()
-	testConst()
-	testFor()
-	testSwitch()
+	// testVar()
+	// testConst()
+	// testFor()
+	// testSwitch()
 	// testArray()
+	testSlice()
 }
 
 func testValues() {
@@ -131,7 +132,7 @@ func testSwitch() {
 }
 
 func testArray() {
-	var a [5]int
+	var a [5]int           // 一定要写明len和type
 	fmt.Println("emp:", a) // 默认初始化为 [0 0 0 0 0]
 
 	a[4] = 100 // 赋值
@@ -149,6 +150,50 @@ func testArray() {
 		}
 	}
 	fmt.Println("2d:", twoD)
+}
+
+func testSlice() {
+	// slice的定义跟array的不同，不需要指定len
+	emp := []string{}
+	fmt.Println("emp:", emp)
+	fmt.Println("len(emp):", len(emp))
+
+	s := make([]string, 3)
+	fmt.Println("empty s:", s)
+
+	t := []string{"g", "h", "i"}
+	fmt.Println("t:", t)
+
+	s[0] = "a"
+	s[1] = "b"
+	fmt.Println("s:", s)
+	fmt.Println("get s[1]:", s[1])
+	fmt.Println("len(s):", len(s))
+
+	c := make([]string, len(s))
+	copy(c, s)
+	fmt.Println("c copy from s:", c)
+	fmt.Println("len(c):", len(c))
+
+	s = append(s, "d")
+	s = append(s, "e")
+	s = append(s, "f")
+	fmt.Println("apd d, e, f into s, s is now:", s)
+
+	fmt.Println("s[2:5]:", s[2:5]) // 前闭后开
+	fmt.Println("s[:5]:", s[:5])   // 前闭后开
+	fmt.Println("s[2:]:", s[2:])   // 前闭后开
+
+	twoD := make([][]int, 3) // 3个元素的slice，每个元素的类型为[]int类型的slice
+	for i := 0; i < 3; i++ {
+		innerLen := i + 1 // 跟array不同，内层的slice可以有不同的len
+		twoD[i] = make([]int, innerLen)
+		for j := 0; j < innerLen; j++ {
+			twoD[i][j] = i + j
+		}
+	}
+	fmt.Println("2d:", twoD)
+
 }
 
 // get the time of the specific timezone
