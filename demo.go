@@ -14,7 +14,10 @@ func main() {
 	// testFor()
 	// testSwitch()
 	// testArray()
-	testSlice()
+	// testSlice()
+	// testRange()
+	// testClosures()
+	testRecursiveClosures()
 }
 
 func testValues() {
@@ -194,6 +197,76 @@ func testSlice() {
 	}
 	fmt.Println("2d:", twoD)
 
+}
+
+func testRange() {
+	nums := []int{2, 3, 4}
+	sum := 0
+	for _, num := range nums {
+		sum += num
+	}
+	fmt.Println("sum:", sum)
+
+	for i, num := range nums {
+		if num == 3 {
+			fmt.Println("index that value == 3:", i)
+		}
+	}
+	kvs := map[string]string{"a": "apple", "b": "banana"}
+	for k, v := range kvs {
+		fmt.Printf("%s -> %s\n", k, v)
+	}
+
+	for k := range kvs {
+		fmt.Println("key:", k)
+	}
+	for i, c := range "go" {
+		fmt.Println(i, c)
+	}
+}
+
+// closures start
+func intSeq() func() int { // 返回一个 func() int 类型的函数，无输入参数，返回值为int
+	i := 0
+	return func() int {
+		i++
+		return i
+	}
+}
+
+func testClosures() {
+	nextInt := intSeq()    // nextInt是一个闭包，里面有个i，i的生命周期没随着它的作用域结束而结束
+	fmt.Println(nextInt()) // 连续调用3次同一个闭包
+	fmt.Println(nextInt())
+	fmt.Println(nextInt())
+
+	fmt.Println(intSeq()()) // 调用了3个不同的闭包，intSeq()每次都返回一个新的闭包
+	fmt.Println(intSeq()())
+	fmt.Println(intSeq()())
+
+	newInt := intSeq()
+	fmt.Println(newInt())
+}
+
+// closures end
+
+func testRecursive(n int) int {
+	if n == 0 {
+		return 1
+	}
+	return n * testRecursive(n-1)
+}
+
+func testRecursiveClosures() { // 这跟闭包有毛线关系？不就是func定义在局部？
+	var fib func(n int) int
+	fib = func(n int) int {
+		if n < 2 {
+			return n
+		}
+		return fib(n-1) + fib(n-2)
+	}
+
+	fmt.Println(fib(7))
 }
 
 // get the time of the specific timezone
