@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"reflect"
@@ -21,7 +22,8 @@ func main() {
 	// testPointer()
 	// testStruct()
 	// testMethods()
-	testInterfaces()
+	// testInterfaces()
+	testError()
 }
 
 func testValues() {
@@ -385,12 +387,67 @@ func testInterfaces() {
 	r := rect{3, 4}
 	c := circle{5}
 
-	measure(r) // 这个是不行的
+	// measure(r) // 这个是不行的
 	measure(&r)
 	measure(&c)
 }
 
 // interfaces end
+
+// error start
+func f1(arg int) (int, error) {
+	if arg == 42 {
+		return -1, errors.New("can't work with 42")
+	}
+
+	return arg + 3, nil // nil表示没错误
+}
+
+// 自定义error对象
+// 通过给一个struct定义一个Error() method来实现
+type argError struct {
+	arg  int
+	prob string
+}
+
+func (e *argError) Error() string {
+	return fmt.Sprintf("%d - %s", e.arg, e.prob)
+}
+
+func f2(arg int) (int, error) {
+	if arg == 42 {
+		// return -1, &argError{arg, "can't work with it"}
+		return -1, &argError{arg, "can't work with it"} // ? 这不是个struct？跟error怎么转换的？
+	}
+	return arg + 3, nil
+}
+
+func testError() {
+	for _, i := range []int{7, 42} {
+		if r, e := f1(i); e != nil {
+			fmt.Println("f1 failed:", e)
+		} else {
+			fmt.Println("f1 worked:", r)
+		}
+	}
+	for _, i := range []int{7, 42} {
+		if r, e := f2(i); e != nil {
+			fmt.Println("f2 failed:", e)
+		} else {
+			fmt.Println("f2 worked:", r)
+		}
+	}
+
+	_, e := f2(42)
+	if ae, ok := e.(*argError); ok {
+		fmt.Println("ae:", ae)
+		fmt.Println("ok:", ok)
+		fmt.Println("ae.arg:", ae.arg)
+		fmt.Println("ae.prob:", ae.prob)
+	}
+}
+
+// error end
 
 // get the time of the specific timezone
 func testTime() {
