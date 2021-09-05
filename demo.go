@@ -17,7 +17,11 @@ func main() {
 	// testSlice()
 	// testRange()
 	// testClosures()
-	testRecursiveClosures()
+	// testRecursiveClosures()
+	// testPointer()
+	// testStruct()
+	// testMethods()
+	testInterfaces()
 }
 
 func testValues() {
@@ -268,6 +272,125 @@ func testRecursiveClosures() { // 这跟闭包有毛线关系？不就是func定
 
 	fmt.Println(fib(7))
 }
+
+// pointer start
+// 用法跟c++基本一致的
+func zeroval(ival int) {
+	ival = 0
+}
+
+func zeroptr(iptr *int) {
+	*iptr = 0
+	fmt.Println("iprt addr:", iptr)
+}
+
+func testPointer() {
+	i := 1
+	fmt.Println("initial i:", i)
+	fmt.Println("i addr:", &i)
+
+	zeroval(i)
+	fmt.Println("after call zeroval(i), i:", i)
+
+	zeroptr(&i)
+	fmt.Println("after call zeroptr(&i), i:", i)
+
+}
+
+// pointer end
+
+// struct start
+type person struct {
+	name string
+	age  int
+}
+
+func newPerson(name string) *person {
+	p := person{name: name}
+	p.age = 42
+	return &p
+}
+
+func testStruct() {
+	fmt.Println(person{"Bob", 20})
+	fmt.Println(person{name: "Alice", age: 30})
+	fmt.Println(person{name: "Fred"})          // 未初始化的元素初始化未0
+	fmt.Println(&person{name: "Ann", age: 40}) // 返回指针
+	fmt.Println(newPerson("Jon"))
+
+	s := person{name: "Sean", age: 50}
+	fmt.Println(s.name)
+
+	sp := &s
+	fmt.Println(sp.age) // 指针也是用 . 来访问
+
+	sp.age = 51 // 可以用指针来修改元素的值
+	fmt.Println(sp.age)
+}
+
+// struct end
+
+// methods start
+// 有点像面向对象的class的类方法
+type rect struct {
+	width, height float64
+}
+
+func (r *rect) area() float64 {
+	return r.width * r.height
+}
+
+func (r rect) perim() float64 {
+	return 2*r.width + 2*r.height
+}
+
+func testMethods() {
+	r := rect{width: 10, height: 3}
+
+	fmt.Println("area:", r.area())
+	fmt.Println("perim:", r.perim())
+
+	rp := &r
+	fmt.Println("area:", rp.area())
+	fmt.Println("perim:", rp.perim())
+}
+
+// methods end
+
+// interfaces start
+type geometry interface {
+	area() float64
+	perim() float64
+}
+
+type circle struct {
+	radius float64
+}
+
+func (c circle) area() float64 {
+	return math.Pi * c.radius * c.radius
+}
+
+func (c *circle) perim() float64 {
+	return 2 * math.Pi * c.radius
+}
+
+func measure(g geometry) {
+	fmt.Println("g:", g)
+	fmt.Println("g area:", g.area())
+	fmt.Println("g perim:", g.perim())
+}
+
+func testInterfaces() {
+	r := rect{3, 4}
+	c := circle{5}
+
+	measure(r) // 这个是不行的
+	measure(&r)
+	measure(&c)
+}
+
+// interfaces end
 
 // get the time of the specific timezone
 func testTime() {
