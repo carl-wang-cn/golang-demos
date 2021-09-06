@@ -16,6 +16,7 @@ func main() {
 	// testSwitch()
 	// testArray()
 	// testSlice()
+	// testMap()
 	// testRange()
 	// testClosures()
 	// testRecursiveClosures()
@@ -141,7 +142,7 @@ func testSwitch() {
 }
 
 func testArray() {
-	var a [5]int           // 一定要写明len和type
+	var a [5]int           // 一定要写明len和type，slice只需要type
 	fmt.Println("emp:", a) // 默认初始化为 [0 0 0 0 0]
 
 	a[4] = 100 // 赋值
@@ -202,6 +203,30 @@ func testSlice() {
 		}
 	}
 	fmt.Println("2d:", twoD)
+
+}
+
+func testMap() {
+	m := make(map[string]int)
+
+	m["k1"] = 7
+	m["k2"] = 13
+
+	fmt.Println("map m:", m)
+
+	fmt.Println("m[\"k1\"]:", m["k1"])
+	fmt.Println("len(m):", len(m))
+
+	delete(m, "k2")
+	fmt.Println("delete k2, then map m:", m)
+
+	// 通过第2个返回值来判断该key是否在map中存在
+	// 获取一个不存在的key，会返回一个空值，0或者""，无法判断是真的不存在还是值是0
+	_, is_exist := m["k2"]
+	fmt.Println("is_exist:", is_exist)
+
+	n := map[string]int{"foo": 1, "name": 2}
+	fmt.Println("map n:", n)
 
 }
 
