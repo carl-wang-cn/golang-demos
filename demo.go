@@ -24,7 +24,9 @@ func main() {
 	// testStruct()
 	// testMethods()
 	// testInterfaces()
-	testError()
+	// testError()
+	// testCoro()
+	testChannel()
 }
 
 func testValues() {
@@ -473,6 +475,73 @@ func testError() {
 }
 
 // error end
+
+// coroutines start
+func f(from string) {
+	for i := 0; i < 3; i++ {
+		fmt.Println(from, ":", i)
+	}
+}
+
+func testCoro() {
+	f("direct")
+
+	go f("goroutine") // 启动一个coro去运行
+
+	go func(msg string) {
+		fmt.Println(msg)
+	}("going") // 匿名函数，通过coro去运行
+
+	time.Sleep(time.Second)
+	fmt.Println("done")
+}
+
+// coroutines end
+
+// channel start
+func worker(done chan bool) {
+	fmt.Println("working...")
+	time.Sleep(time.Second)
+	fmt.Println("done")
+
+	done <- true
+}
+
+// 声明channel pings只能用来往channel内 sending string
+func ping(pings chan<- string, msg string) {
+	pings <- msg
+}
+
+// 声明channel pings只能用来往channel外吐sting，channel pongs只能用来往channel内 sending string
+func pong(pings <-chan string, pongs chan<- string) {
+	msg := <-pings
+	pongs <- msg
+}
+
+func testChannel() {
+	messages := make(chan string)
+
+	go func() {
+		messages <- "ping"
+		messages <- "ping"
+	}()
+
+	msg := <-messages + <-messages
+	fmt.Println(msg)
+
+	done := make(chan bool, 1)
+	go worker(done)
+
+	<-done // 没有这行，就不会等着worker执行完成
+
+	pings := make(chan string, 1)
+	pongs := make(chan string, 1)
+	ping(pings, "pass message")
+	pong(pings, pongs)
+	fmt.Println(<-pongs)
+}
+
+// channel end
 
 // get the time of the specific timezone
 func testTime() {
