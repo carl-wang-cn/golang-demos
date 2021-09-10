@@ -26,7 +26,12 @@ func main() {
 	// testInterfaces()
 	// testError()
 	// testCoro()
-	testChannel()
+	// testChannel()
+	// testNonBlockingChannel()
+	// testClosingChannel()
+	testRangeOverChannel()
+	// testSelect()
+	// testTimeout()
 }
 
 func testValues() {
@@ -529,7 +534,7 @@ func testChannel() {
 	msg := <-messages + <-messages
 	fmt.Println(msg)
 
-	done := make(chan bool, 1)
+	done := make(chan bool)
 	go worker(done)
 
 	<-done // 没有这行，就不会等着worker执行完成
@@ -541,7 +546,129 @@ func testChannel() {
 	fmt.Println(<-pongs)
 }
 
+func testNonBlockingChannel() {
+	// 默认在channel上收发消息，是阻塞的
+	// 我们可以通过select来实现非阻塞的收发
+
+	message := make(chan string)
+	signal := make(chan bool)
+
+	select {
+	case msg := <-message:
+		fmt.Println("recved message", msg)
+	default:
+		fmt.Println("no msg recved")
+	}
+
+	msg := "hi"
+	select { // 因为message无receiver，所以msg发不出去
+	case message <- msg:
+		fmt.Println("sent msg", msg)
+	default:
+		fmt.Println("no msg sent")
+	}
+
+	select {
+	case msg := <-message:
+		fmt.Println("recved msg", msg)
+	case sig := <-signal:
+		fmt.Println("recved signal", sig)
+	default:
+		fmt.Println("no activity")
+	}
+}
+
+func testClosingChannel() {
+	jobs := make(chan int, 5)
+	done := make(chan bool)
+
+	go func() {
+		for {
+			j, more := <-jobs
+			if more {
+				fmt.Println("recved job", j)
+			} else {
+				fmt.Println("recved all jobs")
+				done <- true
+				return
+			}
+		}
+	}()
+
+	for j := 1; j <= 3; j++ {
+		jobs <- j
+		fmt.Println("sent job", j)
+	}
+
+	close(jobs)
+	fmt.Println("sent all jobs")
+
+	<-done // 等着所有任务完成，收到true
+}
+
+func testRangeOverChannel() {
+	queue := make(chan string, 2)
+	queue <- "one"
+	queue <- "two"
+	close(queue)
+
+	for elem := range queue {
+		fmt.Println(elem)
+	}
+}
+
 // channel end
+
+func testSelect() {
+	c1 := make(chan string)
+	c2 := make(chan string)
+
+	go func() {
+		time.Sleep(2 * time.Second)
+		c1 <- "one"
+	}()
+	go func() {
+		time.Sleep(3 * time.Second)
+		c1 <- "two"
+	}()
+
+	for i := 0; i < 2; i++ {
+		select {
+		case msg1 := <-c1:
+			fmt.Println("received", msg1)
+		case msg2 := <-c2:
+			fmt.Println("received", msg2)
+		}
+	}
+}
+
+func testTimeout() {
+	c1 := make(chan string, 1)
+	go func() {
+		time.Sleep(2 * time.Second)
+		c1 <- "result 1"
+	}()
+
+	select {
+	case res := <-c1:
+		fmt.Println(res)
+	case <-time.After(1 * time.Second): // 超时时间1s
+		fmt.Println("timeout 1")
+	}
+
+	c2 := make(chan string, 1)
+	go func() {
+		time.Sleep(2 * time.Second)
+		c2 <- "result 2"
+	}()
+
+	select {
+	case res := <-c2:
+		fmt.Println(res)
+	case <-time.After(3 * time.Second): // 超时时间3s
+		fmt.Println("timeout 2")
+	}
+}
 
 // get the time of the specific timezone
 func testTime() {
