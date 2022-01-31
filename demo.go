@@ -18,6 +18,7 @@ func main() {
 	// testSlice()
 	// testMap()
 	// testRange()
+	// testVariadicFunc()
 	// testClosures()
 	// testRecursiveClosures()
 	// testPointer()
@@ -29,15 +30,20 @@ func main() {
 	// testChannel()
 	// testNonBlockingChannel()
 	// testClosingChannel()
-	testRangeOverChannel()
+	// testRangeOverChannel()
 	// testSelect()
 	// testTimeout()
+	testTimer()
+	testTicker()
 }
 
 func testValues() {
 	fmt.Println("go" + "lang")
 	fmt.Println("1+1 =", 1+1) // 通过逗号间隔的元素，print的时候，会在中间加一个空格
 	fmt.Println("7.0/3.0 =", 7.0/3.0)
+	fmt.Println("7.0/3 =", 7.0/3)
+	fmt.Println("7/3.0 =", 7/3.0)
+	fmt.Println("7/3 =", 7/3)
 	fmt.Println("true && false:", true && false)
 	fmt.Println("true || false:", true || false)
 	fmt.Println("!true:", !true)
@@ -73,32 +79,41 @@ func testConst() {
 	fmt.Println(n, reflect.TypeOf(n))
 
 	const d = 3e20 / n
-	fmt.Println(d, reflect.TypeOf(d))
+	fmt.Println(d, reflect.TypeOf(d)) // d 是float64类型
 
-	fmt.Println(int64(d), reflect.TypeOf(int64(d)))
-	fmt.Println(math.Sin(n), reflect.TypeOf(n))
+	fmt.Println(int64(d), reflect.TypeOf(int64(d))) // 强制类型转换
+	fmt.Println(math.Sin(n), reflect.TypeOf(n), reflect.TypeOf(math.Sin(n)))
 }
 
 func testFor() {
+	// initial, condition, after
 	i := 1
-	for i <= 3 {
+	for i <= 3 { // only have condition
 		fmt.Println(i)
 		i = i + 1
 	}
 
-	for j := 7; j <= 9; j++ {
+	for j := 7; j <= 9; j++ { // initial; condition; after
 		fmt.Println(j)
 	}
 
-	for x := 0; ; x += 1 {
-		fmt.Println("loop")
+	fmt.Println("loop, without all")
+	for { // without all
+		break
+	}
+
+	fmt.Println("loop without condition")
+	for x := 0; ; x += 1 { // without condition
 		if x > 5 {
 			break
 		}
+		fmt.Println(x)
 	}
 
+	fmt.Println("loop skipping even num")
 	for n := 0; n <= 5; n++ {
 		if n%2 == 0 {
+			fmt.Println("skipping", n)
 			continue
 		}
 		fmt.Println(n)
@@ -106,7 +121,7 @@ func testFor() {
 }
 
 func testSwitch() {
-	i := 4
+	i := 3
 	fmt.Print("Write ", i, " as ")
 	switch i {
 	case 1:
@@ -117,6 +132,8 @@ func testSwitch() {
 	default:
 		fmt.Println("default")
 	}
+
+	fmt.Println("next switch")
 
 	switch time.Now().Weekday() {
 	case time.Saturday, time.Sunday: // 用逗号分隔不同的值
@@ -154,7 +171,7 @@ func testArray() {
 
 	a[4] = 100 // 赋值
 	fmt.Println("set:", a)
-	fmt.Println("get: ", a[4])  // 取值
+	fmt.Println("get:", a[4])   // 取值
 	fmt.Println("len:", len(a)) // array的长度
 
 	b := [5]int{1, 2, 3, 4, 6} // 显式初始化
@@ -196,6 +213,7 @@ func testSlice() {
 	s = append(s, "e")
 	s = append(s, "f")
 	fmt.Println("apd d, e, f into s, s is now:", s)
+	fmt.Println("s len:", len(s))
 
 	fmt.Println("s[2:5]:", s[2:5]) // 前闭后开
 	fmt.Println("s[:5]:", s[:5])   // 前闭后开
@@ -214,7 +232,7 @@ func testSlice() {
 }
 
 func testMap() {
-	m := make(map[string]int)
+	m := make(map[string]int) // [key]value
 
 	m["k1"] = 7
 	m["k2"] = 13
@@ -226,6 +244,7 @@ func testMap() {
 
 	delete(m, "k2")
 	fmt.Println("delete k2, then map m:", m)
+	fmt.Println("len(m):", len(m))
 
 	// 通过第2个返回值来判断该key是否在map中存在
 	// 获取一个不存在的key，会返回一个空值，0或者""，无法判断是真的不存在还是值是0
@@ -262,6 +281,28 @@ func testRange() {
 		fmt.Println(i, c)
 	}
 }
+
+// test variadic-func start
+
+func sum(num ...int) (sum_v int) {
+	fmt.Println("sum:", num)
+	sum_v = 0
+	for _, v := range num {
+		sum_v += v
+	}
+	fmt.Println("sum_v:", sum_v)
+	// return sum_v
+	return
+}
+
+func testVariadicFunc() {
+	sum(1, 2)
+	sum(1, 2, 3)
+	nums := []int{1, 2, 3, 4} // only slice, array error
+	sum(nums...)
+}
+
+// test variadic-func end
 
 // closures start
 func intSeq() func() int { // 返回一个 func() int 类型的函数，无输入参数，返回值为int
@@ -325,9 +366,11 @@ func testPointer() {
 
 	zeroval(i)
 	fmt.Println("after call zeroval(i), i:", i)
+	fmt.Println("after call zeroval(i), i addr:", &i)
 
 	zeroptr(&i)
 	fmt.Println("after call zeroptr(&i), i:", i)
+	fmt.Println("after call zeroptr(&i), i addr:", &i)
 
 }
 
@@ -405,7 +448,7 @@ func (c circle) area() float64 {
 	return math.Pi * c.radius * c.radius
 }
 
-func (c *circle) perim() float64 {
+func (c circle) perim() float64 {
 	return 2 * math.Pi * c.radius
 }
 
@@ -421,7 +464,7 @@ func testInterfaces() {
 
 	// measure(r) // 这个是不行的
 	measure(&r)
-	measure(&c)
+	measure(c)
 }
 
 // interfaces end
@@ -442,7 +485,7 @@ type argError struct {
 	prob string
 }
 
-func (e *argError) Error() string {
+func (e argError) Error() string {
 	return fmt.Sprintf("%d - %s", e.arg, e.prob)
 }
 
@@ -471,8 +514,13 @@ func testError() {
 	}
 
 	_, e := f2(42)
-	if ae, ok := e.(*argError); ok {
+	fmt.Println("e:", e)
+	fmt.Println("e addr:", &e)
+	fmt.Println("e type:", reflect.TypeOf(e))
+	if ae, ok := e.(*argError); ok { // 这是个类型断言 type assertion
 		fmt.Println("ae:", ae)
+		fmt.Println("ae addr:", &ae) // ae跟e不是同一个对象
+		fmt.Println("ae type:", reflect.TypeOf(ae))
 		fmt.Println("ok:", ok)
 		fmt.Println("ae.arg:", ae.arg)
 		fmt.Println("ae.prob:", ae.prob)
@@ -489,9 +537,9 @@ func f(from string) {
 }
 
 func testCoro() {
-	f("direct")
-
 	go f("goroutine") // 启动一个coro去运行
+
+	f("direct")
 
 	go func(msg string) {
 		fmt.Println(msg)
@@ -504,6 +552,7 @@ func testCoro() {
 // coroutines end
 
 // channel start
+// done是双向channel
 func worker(done chan bool) {
 	fmt.Println("working...")
 	time.Sleep(time.Second)
@@ -517,7 +566,7 @@ func ping(pings chan<- string, msg string) {
 	pings <- msg
 }
 
-// 声明channel pings只能用来往channel外吐sting，channel pongs只能用来往channel内 sending string
+// 声明channel pings只能用来往channel外吐string，channel pongs只能用来往channel内 sending string
 func pong(pings <-chan string, pongs chan<- string) {
 	msg := <-pings
 	pongs <- msg
@@ -528,7 +577,7 @@ func testChannel() {
 
 	go func() {
 		messages <- "ping"
-		messages <- "ping"
+		messages <- "pong"
 	}()
 
 	msg := <-messages + <-messages
@@ -541,9 +590,9 @@ func testChannel() {
 
 	pings := make(chan string, 1)
 	pongs := make(chan string, 1)
-	ping(pings, "pass message")
-	pong(pings, pongs)
-	fmt.Println(<-pongs)
+	ping(pings, "pass message") // 把 "pass message"发到channel pings里面
+	pong(pings, pongs)          // pings --> pongs
+	fmt.Println(<-pongs)        // 打印出pongs内的内容
 }
 
 func testNonBlockingChannel() {
@@ -595,7 +644,7 @@ func testClosingChannel() {
 		}
 	}()
 
-	for j := 1; j <= 3; j++ {
+	for j := 1; j <= 20; j++ {
 		jobs <- j
 		fmt.Println("sent job", j)
 	}
@@ -677,4 +726,45 @@ func testTime() {
 	d := time.Date(t.Year(), t.Month(), t.Day(), 16, 0, 0, 0, loc)
 	fmt.Println("t", t)
 	fmt.Println("d", d)
+}
+
+func testTimer() {
+	timer1 := time.NewTimer(2 * time.Second)
+
+	<-timer1.C
+	fmt.Println("timer1 fired")
+
+	timer2 := time.NewTimer(1 * time.Second)
+	go func() {
+		<-timer2.C
+		fmt.Println("timer2 fired")
+	}()
+
+	stop := timer2.Stop()
+	if stop {
+		fmt.Println("timer2 stopped")
+	}
+
+	time.Sleep(2 * time.Second)
+}
+
+func testTicker() {
+	ticker := time.NewTicker(500 * time.Millisecond)
+	done := make(chan bool)
+
+	go func() {
+		for {
+			select {
+			case <-done:
+				return
+			case t := <-ticker.C:
+				fmt.Println("tick at:", t)
+			}
+		}
+	}()
+
+	time.Sleep(1600 * time.Millisecond)
+	ticker.Stop()
+	done <- true
+	fmt.Println("ticker stopped")
 }
